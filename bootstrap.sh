@@ -374,7 +374,7 @@ function build_gcc {
   pushd "${BUILD_DIR}"
   mkdir_empty "${GCC}"
   cd "${GCC}"
-  CC="${CC} -std=gnu89" "${SOURCES}/${GCC}/configure" \
+  "${SOURCES}/${GCC}/configure" \
     --prefix="${PREFIX}" \
     --target="m68k-amigaos" \
     --enable-languages=c \
@@ -395,7 +395,7 @@ function build_gpp {
   pushd "${BUILD_DIR}"
   mkdir_empty "${GPP}"
   cd "${GPP}"
-  CC="${CC} -std=gnu89" "${SOURCES}/${GCC}/configure" \
+  "${SOURCES}/${GCC}/configure" \
     --prefix="${PREFIX}" \
     --target="m68k-amigaos" \
     --enable-languages=c++ \
