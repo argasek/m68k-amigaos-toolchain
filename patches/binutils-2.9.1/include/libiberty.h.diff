@@ -20,5 +20,4 @@
 -typedef void libiberty_voidfn PARAMS ((int status));
 -__volatile__ libiberty_voidfn xexit;
 -#endif
-+extern void xexit PARAMS ((int status)) __attribute__ ((__noreturn__));
- 
++extern void xexit PARAMS ((int status));

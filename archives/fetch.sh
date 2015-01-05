@@ -21,6 +21,7 @@ function download_and_extract {
   fi
 }
 
+download "ftp://ftp.gnu.org/gnu/m4/m4-1.4.17.tar.gz"
 download "ftp://ftp.gnu.org/gnu/gawk/gawk-3.1.8.tar.gz"
 download "ftp://ftp.gnu.org/gnu/bison/bison-1.35.tar.gz"
 download "ftp://ftp.gnu.org/gnu/texinfo/texinfo-4.13.tar.gz"
@@ -34,8 +35,12 @@ download "ftp://ftp.gnu.org/gnu/binutils/binutils-2.9.1.tar.gz"
 download "ftp://ftp.gnu.org/gnu/binutils/binutils-2.14.tar.gz"
 
 download \
-  "http://sourceforge.net/projects/libnix/files/latest/download" \
-  "libnix-2.1.tar.gz"
+  "http://sourceforge.net/projects/flex/files/flex/2.5.4.a/flex-2.5.4a.tar.gz/download" \
+  "flex-2.5.4.tar.gz"
+
+download \
+  "http://github.com/cahirwpz/libnix/archive/master.zip" \
+  "libnix-2.2.zip"
 download "http://www.haage-partner.de/download/AmigaOS/NDK39.lha"
 download_and_extract \
   "http://aminet.net/dev/gcc/sfdc.lha" \
@@ -44,10 +49,10 @@ download_and_extract \
   "http://aminet.net/dev/misc/fd2sfd.lha" \
   "fd2sfd-1.0.tar.gz"
 download \
-  "http://ftp.back2roots.org/geekgadgets/amiga/m68k/snapshots/990529/bin/libamiga-bin.tgz" \
+  "ftp://ftp.exotica.org.uk/mirrors/geekgadgets/amiga/m68k/snapshots/990529/bin/libamiga-bin.tgz" \
   "libamiga-bin.tar.gz"
 download \
-  "http://ftp.back2roots.org/geekgadgets/amiga/m68k/snapshots/990529/src/libm-5.4-src.tgz" \
+  "ftp://ftp.exotica.org.uk/mirrors/geekgadgets/amiga/m68k/snapshots/990529/src/libm-5.4-src.tgz" \
   "libm-5.4.tar.gz"
 download \
   "http://sourceforge.net/projects/amiga/files/ixemul.library/48.2/ixemul-src.lha/download" \

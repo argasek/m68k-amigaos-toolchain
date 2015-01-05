@@ -67,23 +67,6 @@ function unpack_clean {
   done
 }
 
-function compare_version {
-  python2.7 - "$1" "$2" "$3" <<EOF
-from distutils.version import StrictVersion
-import sys
-
-cmp = lambda x, y: StrictVersion(x).__cmp__(y)
-
-op = {"lt": [-1],    "gt": [1],
-      "le": [-1, 0], "ge": [1, 0],
-      "eq": [0],     "ne": [-1, 1]}
-
-res = cmp(sys.argv[1], sys.argv[3]) in op[sys.argv[2]]
-
-sys.exit(int(not res))
-EOF
-}
-
 function unpack_sources {
   [ -f "${STAMP}/unpack-sources" ] && return 0
 
@@ -103,7 +86,7 @@ function unpack_sources {
   apply_patches "${GCC}"
   popd
 
-  if compare_version "${GCC_VER}" "ge" "4.0.0"; then
+  if ((${VERSION} == 4)); then
     unpack_clean "${GMP}" "${GMP_SRC}"
     unpack_clean "${MPC}" "${MPC_SRC}"
     unpack_clean "${MPFR}" "${MPFR_SRC}"
@@ -135,7 +118,7 @@ function unpack_sources {
   popd
 
   unpack_clean "${LIBNIX}" "${LIBNIX_SRC}"
-  mv "libnix" "${LIBNIX}"
+  mv "libnix-master" "${LIBNIX}"
   chmod a+x "${LIBNIX}/mkinstalldirs"
 
   unpack_clean "${LIBM}" "${LIBM_SRC}"
@@ -148,8 +131,10 @@ function unpack_sources {
   popd
 
   unpack_clean "${TEXINFO}" "${TEXINFO_SRC}"
+  unpack_clean "${FLEX}" "${FLEX_SRC}"
   unpack_clean "${BISON}" "${BISON_SRC}"
   unpack_clean "${GAWK}" "${GAWK_SRC}"
+  unpack_clean "${M4}" "${M4_SRC}"
 
   unpack_clean "${VASM}" "${VASM_SRC}"
   mv "vasm" "${VASM}"
@@ -179,19 +164,38 @@ function build_tools {
 
   pushd "${BUILD_DIR}"
 
+  mkdir_empty "${M4}"
+  pushd "${M4}"
+  "${SOURCES}/${M4}/configure" \
+    --prefix="${HOST_DIR}"
+  ${MAKE}
+  make install
+  ln -s m4 "${HOST_DIR}/bin/gm4"
+  popd
+
   mkdir_empty "${GAWK}"
   pushd "${GAWK}"
   "${SOURCES}/${GAWK}/configure" \
     --prefix="${HOST_DIR}"
-  ${MAKE} && make install
+  ${MAKE}
+  make install
   popd
 
-  if compare_version "${GCC_VER}" "le" "3.4.6"; then
+  if ((${VERSION} < 4)); then
+    mkdir_empty "${FLEX}"
+    pushd "${FLEX}"
+    "${SOURCES}/${FLEX}/configure" \
+      --prefix="${HOST_DIR}"
+    ${MAKE}
+    make install
+    popd
+
     mkdir_empty "${BISON}"
     pushd "${BISON}"
     "${SOURCES}/${BISON}/configure" \
       --prefix="${HOST_DIR}"
-    ${MAKE} && make install
+    ${MAKE}
+    make install
     popd
   fi
 
@@ -199,16 +203,18 @@ function build_tools {
   pushd "${TEXINFO}"
   "${SOURCES}/${TEXINFO}/configure" \
     --prefix="${HOST_DIR}"
-  ${MAKE} && make install
+  ${MAKE}
+  make install
   popd
 
-  if compare_version "${GCC_VER}" "ge" "4.0.0"; then
+  if ((${VERSION} == 4)); then
     mkdir_empty "${GMP}"
     pushd "${GMP}"
     "${SOURCES}/${GMP}/configure" \
       --prefix="${HOST_DIR}" \
       --disable-shared
-    ${MAKE} && make install
+    ${MAKE}
+    make install
     popd
 
     mkdir_empty "${MPFR}"
@@ -217,7 +223,8 @@ function build_tools {
       --prefix="${HOST_DIR}" \
       --disable-shared \
       --with-gmp="${HOST_DIR}"
-    ${MAKE} && make install
+    ${MAKE}
+    make install
     popd
 
     mkdir_empty "${MPC}"
@@ -227,7 +234,8 @@ function build_tools {
       --disable-shared \
       --with-gmp="${HOST_DIR}" \
       --with-mpfr="${HOST_DIR}"
-    ${MAKE} && make install
+    ${MAKE}
+    make install
     popd
   fi
 
@@ -406,7 +414,8 @@ function process_ndk {
   cd "${FD2SFD}"
   ./configure \
     --prefix="${PREFIX}"
-  make && make install
+  make
+  make install
   popd
 
   pushd "${BUILD_DIR}"
@@ -415,7 +424,8 @@ function process_ndk {
   cd "${SFDC}"
   ./configure \
     --prefix="${PREFIX}"
-  make && make install
+  make
+  make install
   popd
 
   pushd "${PREFIX}/os-include"
@@ -429,7 +439,7 @@ function process_ndk {
     sfdc --target=m68k-amigaos --mode=macros \
       --output="inline/${base}.h" $file
     sfdc --target=m68k-amigaos --mode=lvo \
-      --output="lvo/${base}.i" $file
+      --output="lvo/${base}_lib.i" $file
   done
   popd
 
@@ -440,7 +450,7 @@ function process_ndk {
   popd
 
   pushd "${PREFIX}/doc"
-  cp -av "${SOURCES}/${NDK}/documentation/autodocs/"* .
+  cp -av "${SOURCES}/${NDK}/Documentation/Autodocs/"* .
   popd
 
   touch "${STAMP}/process-ndk"
@@ -496,7 +506,8 @@ function build_libm {
     --prefix="${PREFIX}" \
     --host="i686-linux-gnu" \
     --build="m68k-amigaos"
-  make && make install
+  make
+  make install
   popd
 
   touch "${STAMP}/build-libm"
@@ -534,10 +545,13 @@ function build {
     ARCH="-m32"
   fi
 
+  # Take over the path -- to preserve hermetic build. 
+  export PATH="/usr/bin:/bin:/usr/local/bin:/opt/local/bin"
+
   # Make sure we always choose known compiler (from the distro) and not one
   # in user's path that could shadow the original one.
-  CC="$(which gcc)"
-  CXX="$(which g++)"
+  CC="$(which gcc) -std=gnu89"
+  CXX="$(which g++) -std=gnu++98"
 
   # Define extra options for gcc's configure script.
   if [ "${VERSION}" != "4" ]; then
@@ -555,8 +569,6 @@ function build {
                          "--disable-shared")
   fi
 
-  # Take over the path -- to preserve hermetic build. 
-  export PATH="/opt/local/bin:/usr/local/bin:/usr/bin:/bin"
   export CC CXX
 
   readonly FLAGS_FOR_TARGET=( \
