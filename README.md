@@ -17,9 +17,9 @@ AmigaOS/m68k targeted cross compilers and assembler
  * libm 5.4 (provides math library implementation for non-FPU Amigas)
  * AmigaOS headers & libraries & autodocs (for AmigaOS 3.9)
  * ixemul.library 48.2
- * vbcc 0.9b + vclib
- * vasm 1.6b
- * vlink 0.14c
+ * vbcc 0.9d + vclib
+ * vasm 1.7b
+ * vlink 0.15
 
 **Note:** *Patches are welcome!*
 
