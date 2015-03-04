@@ -479,7 +479,7 @@ function build_libnix {
     --prefix="${PREFIX}" \
     --host="i686-linux-gnu" \
     --target="m68k-amigaos"
-  ${MAKE} all \
+  make all \
     CC=m68k-amigaos-gcc \
     CPP="m68k-amigaos-gcc -E" \
     AR=m68k-amigaos-ar \
